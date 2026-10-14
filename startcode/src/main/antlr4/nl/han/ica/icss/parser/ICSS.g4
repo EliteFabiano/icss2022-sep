@@ -46,7 +46,7 @@ stylesheet: variable_declaration* stylerule* EOF;
 
 stylerule: selector OPEN_BRACE declaration* CLOSE_BRACE;
 
-declaration: propertyName COLON (variable_reference | literal) SEMICOLON;
+declaration: propertyName COLON expr SEMICOLON;
 
 propertyName: PROPERTY_NAME;
 
@@ -60,7 +60,7 @@ idSelector: ID_IDENT | COLOR;
 classSelector: CLASS_IDENT;
 
 // Literal
-literal: colorLiteral | percentageLiteral | pixelLiteral | booleanLiteral;
+literal: colorLiteral | percentageLiteral | pixelLiteral | booleanLiteral | scalarLiteral;
 
 colorLiteral: COLOR;
 
@@ -70,7 +70,14 @@ pixelLiteral: PIXELSIZE;
 
 booleanLiteral: TRUE | FALSE;
 
-//variable
+scalarLiteral: SCALAR;
+
+// Variable
 variable_declaration: CAPITAL_IDENT ASSIGNMENT_OPERATOR literal SEMICOLON;
 
 variable_reference: CAPITAL_IDENT;
+
+// Math
+operator: MUL | PLUS | MIN;
+
+expr: expr MUL expr | expr (PLUS | MIN) expr | variable_reference | literal;
