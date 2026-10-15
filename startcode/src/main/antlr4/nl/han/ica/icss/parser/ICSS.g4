@@ -44,7 +44,7 @@ ASSIGNMENT_OPERATOR: ':=';
 //--- PARSER: ---
 stylesheet: variable_declaration* stylerule* EOF;
 
-stylerule: selector OPEN_BRACE declaration* CLOSE_BRACE;
+stylerule: selector OPEN_BRACE (if_statement | declaration)* CLOSE_BRACE;
 
 declaration: propertyName COLON expr SEMICOLON;
 
@@ -53,7 +53,7 @@ propertyName: PROPERTY_NAME;
 // Selector
 selector: tagSelector | idSelector | classSelector;
 
-tagSelector: LOWER_IDENT | PROPERTY_NAME | IF | ELSE;
+tagSelector: LOWER_IDENT | PROPERTY_NAME;
 
 idSelector: ID_IDENT | COLOR;
 
@@ -81,3 +81,6 @@ variable_reference: CAPITAL_IDENT;
 operator: MUL | PLUS | MIN;
 
 expr: expr MUL expr | expr (PLUS | MIN) expr | variable_reference | literal;
+
+// If statements
+if_statement: IF BOX_BRACKET_OPEN expr BOX_BRACKET_CLOSE OPEN_BRACE (declaration | if_statement)* CLOSE_BRACE (CLOSE_BRACE | ELSE OPEN_BRACE declaration* CLOSE_BRACE)?;
