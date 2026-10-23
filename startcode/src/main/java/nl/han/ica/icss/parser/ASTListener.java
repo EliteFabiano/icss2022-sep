@@ -8,6 +8,7 @@ import nl.han.ica.icss.ast.Declaration;
 import nl.han.ica.icss.ast.Stylerule;
 import nl.han.ica.icss.ast.VariableAssignment;
 import nl.han.ica.icss.ast.VariableReference;
+import nl.han.ica.icss.ast.Operation;
 import nl.han.ica.icss.ast.literals.BoolLiteral;
 import nl.han.ica.icss.ast.literals.ColorLiteral;
 import nl.han.ica.icss.ast.literals.PercentageLiteral;
@@ -16,6 +17,9 @@ import nl.han.ica.icss.ast.literals.ScalarLiteral;
 import nl.han.ica.icss.ast.selectors.ClassSelector;
 import nl.han.ica.icss.ast.selectors.IdSelector;
 import nl.han.ica.icss.ast.selectors.TagSelector;
+import nl.han.ica.icss.ast.operations.AddOperation;
+import nl.han.ica.icss.ast.operations.MultiplyOperation;
+import nl.han.ica.icss.ast.operations.SubtractOperation;
 
 /**
  * This class extracts the ICSS Abstract Syntax Tree from the Antlr Parse tree.
@@ -130,6 +134,32 @@ public class ASTListener extends ICSSBaseListener {
 	public void exitVariable_reference(ICSSParser.Variable_referenceContext ctx) {
 		ASTNode reference = currentContainer.pop();
 		currentContainer.peek().addChild(reference);
+	}
+
+	// Expression
+	@Override
+	public void enterExpr(ICSSParser.ExprContext ctx) {
+		if (ctx.expr().size() != 2) {
+			return;
+		}
+
+		Operation operation;
+		if (ctx.MUL() != null) {
+			operation = new MultiplyOperation();
+		} else if (ctx.PLUS() != null) {
+			operation = new AddOperation();
+		} else {
+			operation = new SubtractOperation();
+		}
+		currentContainer.push(operation);
+	}
+
+	@Override
+	public void exitExpr(ICSSParser.ExprContext ctx) {
+		if (ctx.expr().size() == 2) {
+			ASTNode operation = currentContainer.pop();
+			currentContainer.peek().addChild(operation);
+		}
 	}
 
 	// Literal

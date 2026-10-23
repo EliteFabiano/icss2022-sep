@@ -73,7 +73,7 @@ booleanLiteral: TRUE | FALSE;
 scalarLiteral: SCALAR;
 
 // Variable
-variable_declaration: CAPITAL_IDENT ASSIGNMENT_OPERATOR literal SEMICOLON;
+variable_declaration: CAPITAL_IDENT ASSIGNMENT_OPERATOR expr SEMICOLON;
 
 variable_reference: CAPITAL_IDENT;
 
