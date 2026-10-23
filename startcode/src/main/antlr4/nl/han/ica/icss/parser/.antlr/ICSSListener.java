@@ -196,4 +196,14 @@ public interface ICSSListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitIf_statement(ICSSParser.If_statementContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ICSSParser#else_clause}.
+	 * @param ctx the parse tree
+	 */
+	void enterElse_clause(ICSSParser.Else_clauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ICSSParser#else_clause}.
+	 * @param ctx the parse tree
+	 */
+	void exitElse_clause(ICSSParser.Else_clauseContext ctx);
 }

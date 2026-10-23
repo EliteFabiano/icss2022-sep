@@ -5,6 +5,8 @@ import nl.han.ica.datastructures.IHANStack;
 import nl.han.ica.icss.ast.AST;
 import nl.han.ica.icss.ast.ASTNode;
 import nl.han.ica.icss.ast.Declaration;
+import nl.han.ica.icss.ast.ElseClause;
+import nl.han.ica.icss.ast.IfClause;
 import nl.han.ica.icss.ast.Stylerule;
 import nl.han.ica.icss.ast.VariableAssignment;
 import nl.han.ica.icss.ast.VariableReference;
@@ -111,6 +113,29 @@ public class ASTListener extends ICSSBaseListener {
 		currentContainer.peek().addChild(declaration);
 	}
 
+	// If/else
+	@Override
+	public void enterIf_statement(ICSSParser.If_statementContext ctx) {
+		currentContainer.push(new IfClause());
+	}
+
+	@Override
+	public void exitIf_statement(ICSSParser.If_statementContext ctx) {
+		ASTNode ifClause = currentContainer.pop();
+		currentContainer.peek().addChild(ifClause);
+	}
+
+	@Override
+	public void enterElse_statement(ICSSParser.Else_statementContext ctx) {
+		currentContainer.push(new ElseClause());
+	}
+
+	@Override
+	public void exitElse_statement(ICSSParser.Else_statementContext ctx) {
+		ASTNode elseClause = currentContainer.pop();
+		currentContainer.peek().addChild(elseClause);
+	}
+
 	// Variable
 	@Override
 	public void enterVariable_declaration(ICSSParser.Variable_declarationContext ctx) {
@@ -139,7 +164,7 @@ public class ASTListener extends ICSSBaseListener {
 	// Expression
 	@Override
 	public void enterExpr(ICSSParser.ExprContext ctx) {
-		if (ctx.expr().size() != 2) {
+		if (ctx.expr().size() != 2) { // Checkt of de expression een operation is of niet.
 			return;
 		}
 

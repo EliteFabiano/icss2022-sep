@@ -20,7 +20,11 @@ COLOR:
 	'#' [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f];
 
 //Specific identifiers for id's and css classes
-PROPERTY_NAME: 'width' | 'height' | 'color' | 'background-color';
+PROPERTY_NAME:
+	'width'
+	| 'height'
+	| 'color'
+	| 'background-color';
 ID_IDENT: '#' [a-z0-9\-]+;
 CLASS_IDENT: '.' [a-z0-9\-]+;
 
@@ -44,7 +48,12 @@ ASSIGNMENT_OPERATOR: ':=';
 //--- PARSER: ---
 stylesheet: variable_declaration* stylerule* EOF;
 
-stylerule: selector OPEN_BRACE (if_statement | declaration)* CLOSE_BRACE;
+stylerule:
+	selector OPEN_BRACE (
+		if_statement
+		| declaration
+		| variable_declaration
+	)* CLOSE_BRACE;
 
 declaration: propertyName COLON expr SEMICOLON;
 
@@ -60,7 +69,12 @@ idSelector: ID_IDENT | COLOR;
 classSelector: CLASS_IDENT;
 
 // Literal
-literal: colorLiteral | percentageLiteral | pixelLiteral | booleanLiteral | scalarLiteral;
+literal:
+	colorLiteral
+	| percentageLiteral
+	| pixelLiteral
+	| booleanLiteral
+	| scalarLiteral;
 
 colorLiteral: COLOR;
 
@@ -73,14 +87,31 @@ booleanLiteral: TRUE | FALSE;
 scalarLiteral: SCALAR;
 
 // Variable
-variable_declaration: CAPITAL_IDENT ASSIGNMENT_OPERATOR expr SEMICOLON;
+variable_declaration:
+	CAPITAL_IDENT ASSIGNMENT_OPERATOR expr SEMICOLON;
 
 variable_reference: CAPITAL_IDENT;
 
 // Math
 operator: MUL | PLUS | MIN;
 
-expr: expr MUL expr | expr (PLUS | MIN) expr | variable_reference | literal;
+expr:
+	expr MUL expr
+	| expr (PLUS | MIN) expr
+	| variable_reference
+	| literal;
 
 // If statements
-if_statement: IF BOX_BRACKET_OPEN expr BOX_BRACKET_CLOSE OPEN_BRACE (declaration | if_statement)* CLOSE_BRACE (CLOSE_BRACE | ELSE OPEN_BRACE declaration* CLOSE_BRACE)?;
+if_statement:
+	IF BOX_BRACKET_OPEN expr BOX_BRACKET_CLOSE OPEN_BRACE (
+		declaration
+		| variable_declaration
+		| if_statement
+	)* CLOSE_BRACE else_statement?;
+
+else_statement:
+	ELSE OPEN_BRACE (
+		declaration
+		| variable_declaration
+		| if_statement
+	)* CLOSE_BRACE;
