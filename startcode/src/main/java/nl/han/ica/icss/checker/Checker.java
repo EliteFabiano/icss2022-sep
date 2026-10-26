@@ -7,7 +7,8 @@ import nl.han.ica.icss.ast.IfClause;
 import nl.han.ica.icss.ast.Stylerule;
 import nl.han.ica.icss.ast.VariableAssignment;
 import nl.han.ica.icss.ast.VariableReference;
-import nl.han.ica.icss.ast.literals.BoolLiteral;
+import nl.han.ica.icss.ast.literals.*;
+import nl.han.ica.icss.ast.operations.*;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -51,6 +52,15 @@ public class Checker {
         } else if (node instanceof ElseClause) {
             checkStatementsInNewScope(((ElseClause) node).body, declaredVariables);
             return;
+        } else if (node instanceof AddOperation) {
+            checkOperation((AddOperation) node, declaredVariables);
+            return;
+        } else if (node instanceof SubtractOperation) {
+            checkOperation((SubtractOperation) node, declaredVariables);
+            return;
+        } else if (node instanceof MultiplyOperation) {
+            checkOperation((MultiplyOperation) node, declaredVariables);
+            return;
         }
 
         for (ASTNode child : node.getChildren()) {
@@ -89,6 +99,15 @@ public class Checker {
         }
         if (ifStatement.elseClause != null) {
             checkStatementsInNewScope(ifStatement.elseClause.body, declaredVariables);
+        }
+    }
+
+    private void checkOperation(ASTNode operation, Map<String, Boolean> declaredVariables) {
+        for (ASTNode child : operation.getChildren()) {
+            checkNode(child, declaredVariables);
+            if (child instanceof ColorLiteral) {
+                operation.setError("Color literals" + child + " mogen niet gebruikt worden in een operation");
+            }
         }
     }
 
