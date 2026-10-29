@@ -1,6 +1,7 @@
 package nl.han.ica.icss.transforms;
 
 import nl.han.ica.icss.ast.*;
+import nl.han.ica.icss.ast.literals.BoolLiteral;
 import nl.han.ica.icss.ast.literals.PercentageLiteral;
 import nl.han.ica.icss.ast.literals.PixelLiteral;
 import nl.han.ica.icss.ast.literals.ScalarLiteral;
@@ -8,6 +9,7 @@ import nl.han.ica.icss.ast.operations.AddOperation;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,7 +50,7 @@ public class Evaluator implements Transform {
             } else if (child instanceof VariableAssignment) {
                 applyAssignment((VariableAssignment) child);
             } else if (child instanceof IfClause) {
-                applyIfClause((IfClause) child);
+                applyIfClause((IfClause) child, node.body);
             }
         }
         variableValues.removeFirst();
@@ -64,23 +66,41 @@ public class Evaluator implements Transform {
         variableValues.getFirst().put(node.name.name, value);
     }
 
-    private void applyIfClause(IfClause node) {
+    private void applyIfClause(IfClause node, List<ASTNode> parentBody) {
         node.conditionalExpression = evalExpression(node.conditionalExpression);
-        applyClauseBody(node.body);
-        if (node.elseClause != null) {
-            applyClauseBody(node.elseClause.body);
+        List<ASTNode> body = node.body;
+        if (!((BoolLiteral) node.conditionalExpression).value) {
+            body = null;
+            if (node.elseClause != null) {
+                body = node.elseClause.body;
+            }
+        }
+
+        if (body != null) {
+            applyClauseBody(body);
+        }
+
+        int index = 0;
+        while (parentBody.get(index) != node) {
+            index++;
+        }
+        parentBody.remove(index);
+        if (body != null) {
+            parentBody.addAll(index, body);
         }
     }
 
     private void applyClauseBody(List<ASTNode> body) {
         variableValues.addFirst(new HashMap<>());
-        for (ASTNode child : body) {
+        for (ASTNode child : new ArrayList<>(body)) {
             if (child instanceof Declaration) {
                 applyDeclaration((Declaration) child);
+            } else if (child instanceof Stylerule) {
+                applyStyleRule((Stylerule) child);
             } else if (child instanceof VariableAssignment) {
                 applyAssignment((VariableAssignment) child);
             } else if (child instanceof IfClause) {
-                applyIfClause((IfClause) child);
+                applyIfClause((IfClause) child, body);
             }
         }
         variableValues.removeFirst();
@@ -98,8 +118,9 @@ public class Evaluator implements Transform {
                     return scope.get(variableReference.name);
                 }
             }
-            throw new IllegalArgumentException("Variable " + variableReference.name + " is niet gedefinieerd in de scope.");
-        }   
+            throw new IllegalArgumentException(
+                    "Variable " + variableReference.name + " is niet gedefinieerd in de scope.");
+        }
 
         if (node instanceof Operation) {
             Operation operation = (Operation) node;
