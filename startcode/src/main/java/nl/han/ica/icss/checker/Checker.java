@@ -9,6 +9,7 @@ import nl.han.ica.icss.ast.VariableAssignment;
 import nl.han.ica.icss.ast.VariableReference;
 import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.*;
+import nl.han.ica.icss.ast.types.ExpressionType;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -24,19 +25,19 @@ public class Checker {
         checkStatements(ast.root.body, new HashMap<>());
     }
 
-    private void checkStatements(List<ASTNode> statements, Map<String, Boolean> declaredVariables) {
+    private void checkStatements(List<ASTNode> statements, Map<String, ExpressionType> declaredVariables) {
         for (ASTNode statement : statements) {
             checkNode(statement, declaredVariables);
         }
     }
 
-    private void checkStatementsInNewScope(List<ASTNode> statements, Map<String, Boolean> outerVariables) {
+    private void checkStatementsInNewScope(List<ASTNode> statements, Map<String, ExpressionType> outerVariables) {
         // Maakt een nieuwe scope aan waarin de buitenstaande variabelen beschikbaar
         // blijven.
         checkStatements(statements, new HashMap<>(outerVariables));
     }
 
-    private void checkNode(ASTNode node, Map<String, Boolean> declaredVariables) {
+    private void checkNode(ASTNode node, Map<String, ExpressionType> declaredVariables) {
         if (node instanceof VariableAssignment) {
             checkAssignment((VariableAssignment) node, declaredVariables);
             return;
@@ -68,20 +69,20 @@ public class Checker {
         }
     }
 
-    private void checkAssignment(VariableAssignment assignment, Map<String, Boolean> declaredVariables) {
+    private void checkAssignment(VariableAssignment assignment, Map<String, ExpressionType> declaredVariables) {
         // Check of de expressie van de assignment geen ongedefinieerde variables bevat.
         checkNode(assignment.expression, declaredVariables);
 
-        boolean isBoolean = isBooleanExpression(assignment.expression, declaredVariables);
+        ExpressionType expressionType = getExpressionType(assignment.expression, declaredVariables);
 
-        declaredVariables.put(assignment.name.name, isBoolean);
+        declaredVariables.put(assignment.name.name, expressionType);
 
         if (!allDeclaredVariables.contains(assignment.name.name)) {
             allDeclaredVariables.add(assignment.name.name);
         }
     }
 
-    private void checkVariableUse(VariableReference variableUse, Map<String, Boolean> declaredVariables) {
+    private void checkVariableUse(VariableReference variableUse, Map<String, ExpressionType> declaredVariables) {
         if (!declaredVariables.containsKey(variableUse.name)) {
             if (allDeclaredVariables.contains(variableUse.name)) {
                 variableUse.setError("Variabele " + variableUse.name + " valt buiten scope");
@@ -91,10 +92,10 @@ public class Checker {
         }
     }
 
-    private void checkIfStatement(IfClause ifStatement, Map<String, Boolean> declaredVariables) {
+    private void checkIfStatement(IfClause ifStatement, Map<String, ExpressionType> declaredVariables) {
         checkNode(ifStatement.conditionalExpression, declaredVariables);
         checkStatementsInNewScope(ifStatement.body, declaredVariables);
-        if (!isBooleanExpression(ifStatement.conditionalExpression, declaredVariables)) {
+        if (getExpressionType(ifStatement.conditionalExpression, declaredVariables) != ExpressionType.BOOL) {
             ifStatement.setError("If condition " + ifStatement.conditionalExpression + " moet een boolean zijn");
         }
         if (ifStatement.elseClause != null) {
@@ -102,23 +103,29 @@ public class Checker {
         }
     }
 
-    private void checkOperation(ASTNode operation, Map<String, Boolean> declaredVariables) {
+    private void checkOperation(ASTNode operation, Map<String, ExpressionType> declaredVariables) {
         for (ASTNode child : operation.getChildren()) {
             checkNode(child, declaredVariables);
-            if (child instanceof ColorLiteral) {
-                operation.setError("Color literals" + child + " mogen niet gebruikt worden in een operation");
+            if (getExpressionType(child, declaredVariables) == ExpressionType.COLOR) {
+                operation.setError("Kleuren mogen niet gebruikt worden in een operatie");
             }
         }
     }
 
-    private boolean isBooleanExpression(ASTNode expression, Map<String, Boolean> declaredVariables) {
+    private ExpressionType getExpressionType(ASTNode expression, Map<String, ExpressionType> declaredVariables) {
         if (expression instanceof BoolLiteral) {
-            return true;
+            return ExpressionType.BOOL;
+        } else if (expression instanceof ColorLiteral) {
+            return ExpressionType.COLOR;
+        } else if (expression instanceof PixelLiteral) {
+            return ExpressionType.PIXEL;
+        } else if (expression instanceof PercentageLiteral) {
+            return ExpressionType.PERCENTAGE;
+        } else if (expression instanceof ScalarLiteral) {
+            return ExpressionType.SCALAR;
         } else if (expression instanceof VariableReference) {
-            if (Boolean.TRUE.equals(declaredVariables.get(((VariableReference) expression).name))) {
-                return true;
-            }
+            return declaredVariables.getOrDefault(((VariableReference) expression).name, ExpressionType.UNDEFINED);
         }
-        return false;
+        return ExpressionType.UNDEFINED;
     }
 }
