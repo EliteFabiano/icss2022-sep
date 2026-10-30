@@ -1,0 +1,10 @@
+Size := 5%;
+
+#menu {
+  width: Size * 3;
+  background-color: #abcdef;
+}
+
+.active {
+  height: 10px;
+}

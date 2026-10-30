@@ -1,0 +1,11 @@
+ColorVar := #ff0000;
+
+p {
+  width: ColorVar + 1px;
+  Local := 4px;
+  height: Local;
+}
+
+a {
+  width: Local;
+}

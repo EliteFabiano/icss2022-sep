@@ -1,0 +1,11 @@
+First := 10px;
+
+p {
+  width: First;
+}
+
+Later := 20px;
+
+a {
+  height: Later;
+}

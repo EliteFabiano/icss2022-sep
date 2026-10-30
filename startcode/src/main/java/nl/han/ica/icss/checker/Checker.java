@@ -115,7 +115,7 @@ public class Checker {
         if (expression instanceof BoolLiteral) {
             return true;
         } else if (expression instanceof VariableReference) {
-            if (declaredVariables.get(((VariableReference) expression).name).equals(Boolean.TRUE)) {
+            if (Boolean.TRUE.equals(declaredVariables.get(((VariableReference) expression).name))) {
                 return true;
             }
         }

@@ -46,7 +46,7 @@ MUL: '*';
 ASSIGNMENT_OPERATOR: ':=';
 
 //--- PARSER: ---
-stylesheet: variable_declaration* stylerule* EOF;
+stylesheet: (variable_declaration | stylerule)* EOF;
 
 stylerule:
 	selector OPEN_BRACE (

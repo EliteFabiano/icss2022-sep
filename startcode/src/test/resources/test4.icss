@@ -1,0 +1,16 @@
+Base := 10px;
+Show := TRUE;
+
+p {
+  width: Base + 2 * 3px - 1px;
+  if [Show] {
+    height: 20px - 3px - 2px;
+    if [FALSE] {
+      color: #ff0000;
+    } else {
+      color: #00ff00;
+    }
+  } else {
+    height: 1px;
+  }
+}
